@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Login</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+  <div id="globalLoader" class="loader hidden"><div class="spinner"></div></div><div id="toastWrap" class="toast-wrap"></div>
+  <main class="page" style="display:grid;place-items:center">
+    <section class="card" style="width:min(420px,100%);padding:1.2rem">
+      <h1>Вход в портал</h1><p class="muted">Корпоративный портал командной разработки</p>
+      <form id="f" class="grid">
+        <input name="email" type="email" placeholder="Email" required>
+        <input name="password" type="password" minlength="6" placeholder="Пароль" required>
+        <button>Войти</button><small id="e" class="muted"></small>
+      </form>
+    </section>
+  </main>
+  <script type="module">
+    import { api } from './assets/js/api.js'; import { loading, toast } from './assets/js/components/ui.js';
+    const f=document.getElementById('f'),e=document.getElementById('e');
+    f.addEventListener('submit',async(ev)=>{ev.preventDefault();e.textContent='';const email=f.email.value.trim(),password=f.password.value;
+      if(!/^\S+@\S+\.\S+$/.test(email)){e.textContent='Некорректный email';return;}
+      if(password.length<6){e.textContent='Минимум 6 символов';return;}
+      try{loading(true);await api.login(email,password);toast('Вход выполнен');window.location.href='tasks.html';}catch(err){e.textContent=err.message;}finally{loading(false);}
+    });
+  </script>
+</body></html>

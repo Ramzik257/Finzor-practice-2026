@@ -1,0 +1,10 @@
+backend/logs/*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+agent-transcripts/
+mcps/
+terminals/
+canvases/

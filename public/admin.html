@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Admin</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <div id="globalLoader" class="loader hidden">
+        <div class="spinner"></div>
+    </div>
+    <div id="toastWrap" class="toast-wrap"></div>
+    <header class="card header container"><b>⚡ Corp Portal</b>
+        <nav class="nav"><a href="index.html">Dashboard</a><a href="tasks.html">Tasks</a><a href="news.html">News</a><a
+                class="active" id="adminLink" href="admin.html">Admin</a></nav>
+        <div><span id="currentUserName"></span> · <span id="currentUserRole"></span> <button id="logoutBtn"
+                class="btn secondary">Выйти</button></div>
+    </header>
+    <main class="page">
+        <div class="container grid">
+            <section class="card" style="padding:1rem">
+                <h2>Создать пользователя</h2>
+                <form id="f" class="toolbar" style="padding:0;margin:0"><input name="email" type="email"
+                        placeholder="Email" required><input name="password" type="password" minlength="6"
+                        placeholder="Пароль" required><input name="full_name" placeholder="Имя"><select name="role">
+                        <option value="employee">employee</option>
+                        <option value="admin">admin</option>
+                    </select><button>Создать</button></form>
+            </section>
+            <section class="card" style="padding:1rem;overflow:auto">
+                <table style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Имя</th>
+                            <th>Роль</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb"></tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+    <script type="module">
+        import { initLayout } from './assets/js/app.js'; import { api } from './assets/js/api.js'; import { loading, toast } from './assets/js/components/ui.js';
+        let users = []; const tb = document.getElementById('tb'); const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        async function load() { users = await api.users(); tb.innerHTML = users.map(u => `<tr><td>${u.id}</td><td>${esc(u.email)}</td><td>${esc(u.full_name || '')}</td><td>${u.role}</td><td>${u.is_blocked ? 'blocked' : 'active'}</td><td><button data-b='${u.id}' class='btn secondary'>${u.is_blocked ? 'Разблокировать' : 'Блок'}</button> <button data-r='${u.id}' class='btn secondary'>Роль</button> <button data-d='${u.id}' class='btn danger'>Удалить</button></td></tr>`).join(''); tb.querySelectorAll('[data-b]').forEach(b => b.onclick = () => upd(b.dataset.b, 'block')); tb.querySelectorAll('[data-r]').forEach(b => b.onclick = () => upd(b.dataset.r, 'role')); tb.querySelectorAll('[data-d]').forEach(b => b.onclick = () => delUser(b.dataset.d)); }
+        async function upd(id, t) { const u = users.find(x => x.id == id); if (!u) return; await api.updateUser({ id: Number(id), role: t === 'role' ? (u.role === 'admin' ? 'employee' : 'admin') : u.role, is_blocked: t === 'block' ? !Number(u.is_blocked) : u.is_blocked }); load(); }
+        async function delUser(id) { if (!confirm('Удалить пользователя?')) return; await api.deleteUser(id); toast('Удалено'); load(); }
+        document.getElementById('f').onsubmit = async (e) => { e.preventDefault(); const p = Object.fromEntries(new FormData(e.target)); await api.createUser(p); e.target.reset(); toast('Создано'); load(); }
+        (async () => { loading(true); await initLayout(true); await load(); loading(false); })();
+    </script>
+</body>
+
+</html> 

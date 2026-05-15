@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>News</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<div id="globalLoader" class="loader hidden"><div class="spinner"></div></div><div id="toastWrap" class="toast-wrap"></div>
+<header class="card header container"><b>⚡ Corp Portal</b><nav class="nav"><a href="index.html">Dashboard</a><a href="tasks.html">Tasks</a><a class="active" href="news.html">News</a><a id="adminLink" href="admin.html">Admin</a></nav><div><span id="currentUserName"></span> · <span id="currentUserRole"></span> <button id="logoutBtn" class="btn secondary">Выйти</button></div></header>
+<main class="page"><div class="container grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))"><section class="card" style="padding:1rem"><h2>Новая новость</h2><form id="f" class="grid"><input name="title" placeholder="Заголовок" required><textarea name="content" placeholder="Текст" required></textarea><button>Опубликовать</button></form></section><section id="list" class="grid"></section></div></main>
+<script type="module">
+import { initLayout } from './assets/js/app.js'; import { api } from './assets/js/api.js'; import { loading, toast } from './assets/js/components/ui.js';
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));let me=null;const list=document.getElementById('list');
+async function load(){const n=await api.news();list.innerHTML=n.map(x=>`<article class='card' style='padding:1rem'><h3>${esc(x.title)}</h3><p class='muted'>${esc(x.author_name||'—')} · ${new Date(x.created_at).toLocaleString()}</p><p>${esc(x.content).replace(/\n/g,'<br>')}</p>${me.role==='admin'?`<button data-d='${x.id}' class='btn danger'>Удалить</button>`:''}</article>`).join('')||'<p class="muted">Новостей нет</p>';list.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(confirm('Удалить новость?')){await api.deleteNews(b.dataset.d);toast('Удалено');load();}});}
+document.getElementById('f').onsubmit=async(e)=>{e.preventDefault();const p=Object.fromEntries(new FormData(e.target));await api.createNews(p);e.target.reset();toast('Опубликовано');load();}
+(async()=>{loading(true);me=await initLayout();await load();loading(false);})();
+</script>
+</body></html>

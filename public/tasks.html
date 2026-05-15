@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tasks</title><link rel="stylesheet" href="assets/css/style.css"></head>
+<body>
+<div id="globalLoader" class="loader hidden"><div class="spinner"></div></div><div id="toastWrap" class="toast-wrap"></div>
+<header class="card header container"><b>⚡ Corp Portal</b><nav class="nav"><a href="index.html">Dashboard</a><a class="active" href="tasks.html">Tasks</a><a href="news.html">News</a><a id="adminLink" href="admin.html">Admin</a></nav><div><span id="currentUserName"></span> · <span id="currentUserRole"></span> <button id="logoutBtn" class="btn secondary">Выйти</button></div></header>
+<main class="page"><div class="container">
+  <section class="card toolbar"><form id="filters" class="toolbar" style="padding:0;margin:0;display:contents">
+    <input name="search" placeholder="Поиск..."><select name="status"><option value="">Все статусы</option><option>pending</option><option>in_progress</option><option>completed</option></select>
+    <select name="priority"><option value="">Все приоритеты</option><option>low</option><option>medium</option><option>high</option></select><input name="deadline" type="date">
+  </form><button id="reset" class="btn secondary">Сбросить</button><button id="open">+ Задача</button></section>
+  <section id="list" class="grid tasks"></section>
+</div></main>
+<div id="m" class="modal"><div class="card modal-box"><form id="taskForm" class="grid"><input type="hidden" name="id"><input name="title" placeholder="Заголовок" required><textarea name="description" placeholder="Описание"></textarea><input type="datetime-local" name="deadline"><select name="priority"><option>low</option><option selected>medium</option><option>high</option></select><select name="status"><option>pending</option><option>in_progress</option><option>completed</option></select><div><button>Сохранить</button> <button type="button" id="close" class="btn secondary">Отмена</button></div></form></div></div>
+<script type="module">
+import { initLayout } from './assets/js/app.js'; import { api } from './assets/js/api.js'; import { loading, toast, modalOpen, modalClose } from './assets/js/components/ui.js';
+let me=null,tasks=[];const list=document.getElementById('list'),filters=document.getElementById('filters'),form=document.getElementById('taskForm');const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+async function load(){const p=new URLSearchParams(new FormData(filters));tasks=await api.tasks(`?${p.toString()}`);list.innerHTML=tasks.map(t=>{const can=me.role==='admin'||Number(t.creator_id)===Number(me.id);return `<article class='card task'><h3>${esc(t.title)}</h3><p class='muted'>${esc(t.description||'')}</p><div><span class='badge ${t.status}'>${t.status}</span> <span class='badge ${t.priority}'>${t.priority}</span></div><div style='margin-top:.5rem'>${can?`<button data-e='${t.id}' class='btn secondary'>Редактировать</button> <button data-d='${t.id}' class='btn danger'>Удалить</button>`:''} <button data-s='${t.id}'>Статус+</button></div></article>`}).join('')||'<p class="muted">Нет задач</p>';list.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>edit(b.dataset.e));list.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>delTask(b.dataset.d));list.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>nextStatus(b.dataset.s));}
+function edit(id){const t=tasks.find(x=>x.id==id);if(!t)return;Object.entries({id:t.id,title:t.title,description:t.description||'',deadline:t.deadline?t.deadline.slice(0,16):'',priority:t.priority,status:t.status}).forEach(([k,v])=>form[k].value=v??'');modalOpen('m');}
+async function delTask(id){if(!confirm('Удалить?'))return;await api.deleteTask(id);toast('Удалено');load();}
+async function nextStatus(id){const t=tasks.find(x=>x.id==id),o=['pending','in_progress','completed'];await api.updateTask({id:Number(id),action:'change_status',status:o[(o.indexOf(t.status)+1)%3]});load();}
+form.onsubmit=async(e)=>{e.preventDefault();const p=Object.fromEntries(new FormData(form));if(!p.title.trim())return toast('Введите заголовок','error');if(p.id)await api.updateTask({id:Number(p.id),title:p.title,description:p.description,deadline:p.deadline,priority:p.priority,status:p.status});else await api.createTask(p);toast('Сохранено');modalClose('m');form.reset();load();}
+document.getElementById('open').onclick=()=>{form.reset();form.id.value='';modalOpen('m')};document.getElementById('close').onclick=()=>modalClose('m');document.getElementById('m').onclick=(e)=>{if(e.target.id==='m')modalClose('m')};filters.onchange=load;filters.search.oninput=(()=>{let t;return()=>{clearTimeout(t);t=setTimeout(load,300)}})();document.getElementById('reset').onclick=()=>{filters.reset();load();};
+(async()=>{loading(true);me=await initLayout();await load();loading(false);})();
+</script>
+</body></html>
