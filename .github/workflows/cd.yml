@@ -1,0 +1,50 @@
+name: CD
+
+# Автодеплой: настройте secrets в GitHub (Settings → Secrets → Actions)
+# DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH
+#
+# Пока workflow только собирает артефакт проекта для ручной выкладки.
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-artifact:
+    name: Build release artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create deploy package
+        run: |
+          mkdir -p dist/corp-portal
+          cp -r backend database public README.md dist/corp-portal/
+          cd dist && zip -r corp-portal.zip corp-portal
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: corp-portal-build
+          path: dist/corp-portal.zip
+          retention-days: 14
+
+  # Раскомментируйте и заполните secrets, когда будет сервер (VPS/хостинг)
+  # deploy-ssh:
+  #   name: Deploy to server
+  #   needs: build-artifact
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy via SSH
+  #       uses: appleboy/scp-action@v0.1.7
+  #       with:
+  #         host: ${{ secrets.DEPLOY_HOST }}
+  #         username: ${{ secrets.DEPLOY_USER }}
+  #         key: ${{ secrets.DEPLOY_SSH_KEY }}
+  #         source: "backend,public,database,README.md"
+  #         target: ${{ secrets.DEPLOY_PATH }}

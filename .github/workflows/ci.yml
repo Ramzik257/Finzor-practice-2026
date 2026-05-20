@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  php-syntax:
+    name: PHP syntax check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: none
+
+      - name: Lint backend PHP files
+        run: |
+          find backend -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Verify project structure
+        run: |
+          test -f README.md
+          test -f database/schema.sql
+          test -f database/seed.sql
+          test -f backend/config/database.php
+          test -f backend/core/bootstrap.php
+          test -f backend/api/auth.php
+          test -f public/login.html
+          test -f public/tasks.html
+          test -f public/news.html
+          test -f public/admin.html
+
+  frontend-check:
+    name: Frontend files check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check static assets
+        run: |
+          test -f public/assets/css/style.css
+          test -f public/assets/js/api.js
+          test -f public/assets/js/app.js
+
+      - name: Validate SQL files are not empty
+        run: |
+          test -s database/schema.sql
+          test -s database/seed.sql

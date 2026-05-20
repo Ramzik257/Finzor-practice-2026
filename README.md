@@ -36,4 +36,14 @@ backend/api/     — API (auth, tasks, news, users, dashboard)
 backend/core/    — подключение к БД, сессии
 public/          — фронтенд (HTML, CSS, JS)
 database/        — SQL-схема и seed
+.github/workflows/ — CI/CD (GitHub Actions)
 ```
+
+## CI/CD
+
+После push в GitHub автоматически запускается проверка:
+
+- **CI** (`ci.yml`) — синтаксис PHP, наличие ключевых файлов проекта
+- **CD** (`cd.yml`) — сборка zip-архива для выкладки (артефакт в Actions)
+
+Статус проверок: вкладка **Actions** в репозитории на GitHub.
