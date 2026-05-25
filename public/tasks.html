@@ -1,25 +1,108 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Tasks</title><link rel="stylesheet" href="assets/css/style.css"></head>
-<body>
-<div id="globalLoader" class="loader hidden"><div class="spinner"></div></div><div id="toastWrap" class="toast-wrap"></div>
-<header class="card header container"><b>⚡ Corp Portal</b><nav class="nav"><a href="index.html">Dashboard</a><a class="active" href="tasks.html">Tasks</a><a href="news.html">News</a><a id="adminLink" href="admin.html">Admin</a></nav><div><span id="currentUserName"></span> · <span id="currentUserRole"></span> <button id="logoutBtn" class="btn secondary">Выйти</button></div></header>
-<main class="page"><div class="container">
-  <section class="card toolbar"><form id="filters" class="toolbar" style="padding:0;margin:0;display:contents">
-    <input name="search" placeholder="Поиск..."><select name="status"><option value="">Все статусы</option><option>pending</option><option>in_progress</option><option>completed</option></select>
-    <select name="priority"><option value="">Все приоритеты</option><option>low</option><option>medium</option><option>high</option></select><input name="deadline" type="date">
-  </form><button id="reset" class="btn secondary">Сбросить</button><button id="open">+ Задача</button></section>
-  <section id="list" class="grid tasks"></section>
-</div></main>
-<div id="m" class="modal"><div class="card modal-box"><form id="taskForm" class="grid"><input type="hidden" name="id"><input name="title" placeholder="Заголовок" required><textarea name="description" placeholder="Описание"></textarea><input type="datetime-local" name="deadline"><select name="priority"><option>low</option><option selected>medium</option><option>high</option></select><select name="status"><option>pending</option><option>in_progress</option><option>completed</option></select><div><button>Сохранить</button> <button type="button" id="close" class="btn secondary">Отмена</button></div></form></div></div>
-<script type="module">
-import { initLayout } from './assets/js/app.js'; import { api } from './assets/js/api.js'; import { loading, toast, modalOpen, modalClose } from './assets/js/components/ui.js';
-let me=null,tasks=[];const list=document.getElementById('list'),filters=document.getElementById('filters'),form=document.getElementById('taskForm');const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-async function load(){const p=new URLSearchParams(new FormData(filters));tasks=await api.tasks(`?${p.toString()}`);list.innerHTML=tasks.map(t=>{const can=me.role==='admin'||Number(t.creator_id)===Number(me.id);return `<article class='card task'><h3>${esc(t.title)}</h3><p class='muted'>${esc(t.description||'')}</p><div><span class='badge ${t.status}'>${t.status}</span> <span class='badge ${t.priority}'>${t.priority}</span></div><div style='margin-top:.5rem'>${can?`<button data-e='${t.id}' class='btn secondary'>Редактировать</button> <button data-d='${t.id}' class='btn danger'>Удалить</button>`:''} <button data-s='${t.id}'>Статус+</button></div></article>`}).join('')||'<p class="muted">Нет задач</p>';list.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>edit(b.dataset.e));list.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>delTask(b.dataset.d));list.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>nextStatus(b.dataset.s));}
-function edit(id){const t=tasks.find(x=>x.id==id);if(!t)return;Object.entries({id:t.id,title:t.title,description:t.description||'',deadline:t.deadline?t.deadline.slice(0,16):'',priority:t.priority,status:t.status}).forEach(([k,v])=>form[k].value=v??'');modalOpen('m');}
-async function delTask(id){if(!confirm('Удалить?'))return;await api.deleteTask(id);toast('Удалено');load();}
-async function nextStatus(id){const t=tasks.find(x=>x.id==id),o=['pending','in_progress','completed'];await api.updateTask({id:Number(id),action:'change_status',status:o[(o.indexOf(t.status)+1)%3]});load();}
-form.onsubmit=async(e)=>{e.preventDefault();const p=Object.fromEntries(new FormData(form));if(!p.title.trim())return toast('Введите заголовок','error');if(p.id)await api.updateTask({id:Number(p.id),title:p.title,description:p.description,deadline:p.deadline,priority:p.priority,status:p.status});else await api.createTask(p);toast('Сохранено');modalClose('m');form.reset();load();}
-document.getElementById('open').onclick=()=>{form.reset();form.id.value='';modalOpen('m')};document.getElementById('close').onclick=()=>modalClose('m');document.getElementById('m').onclick=(e)=>{if(e.target.id==='m')modalClose('m')};filters.onchange=load;filters.search.oninput=(()=>{let t;return()=>{clearTimeout(t);t=setTimeout(load,300)}})();document.getElementById('reset').onclick=()=>{filters.reset();load();};
-(async()=>{loading(true);me=await initLayout();await load();loading(false);})();
-</script>
-</body></html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Задачи — Портал команды</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="tasks">
+  <div id="globalLoader" class="loader hidden"><div class="spinner"></div></div>
+  <div id="toastWrap" class="toast-wrap"></div>
+  <header class="card header container">
+    <div class="brand"><span class="brand-mark">ПК</span><span>Портал команды</span></div>
+    <nav class="nav">
+      <a data-page="home" href="index.html">Главная</a>
+      <a data-page="tasks" href="tasks.html">Задачи</a>
+      <a data-page="news" href="news.html">Новости</a>
+      <a data-page="admin" id="adminLink" href="admin.html">Админ</a>
+    </nav>
+    <div class="user-bar">
+      <span><strong id="currentUserName">…</strong></span>
+      <span id="currentUserRole">…</span>
+      <button id="logoutBtn" type="button" class="btn secondary btn-sm">Выйти</button>
+    </div>
+  </header>
+  <main class="page">
+    <div class="container">
+      <section class="card toolbar">
+        <div>
+          <label for="search">Поиск</label>
+          <input id="search" name="search" form="filters" placeholder="Название или описание">
+        </div>
+        <form id="filters" class="toolbar" style="padding:0;margin:0;display:contents">
+          <div>
+            <label for="status">Статус</label>
+            <select id="status" name="status">
+              <option value="">Все</option>
+              <option value="pending">Ожидает</option>
+              <option value="in_progress">В работе</option>
+              <option value="completed">Выполнена</option>
+            </select>
+          </div>
+          <div>
+            <label for="priority">Приоритет</label>
+            <select id="priority" name="priority">
+              <option value="">Все</option>
+              <option value="low">Низкий</option>
+              <option value="medium">Средний</option>
+              <option value="high">Высокий</option>
+            </select>
+          </div>
+          <div>
+            <label for="deadline">Срок</label>
+            <input id="deadline" name="deadline" type="date">
+          </div>
+        </form>
+        <div class="toolbar-actions">
+          <button id="resetFilters" type="button" class="btn secondary">Сбросить</button>
+          <button id="createTaskBtn" type="button">+ Новая задача</button>
+        </div>
+      </section>
+      <section id="taskList" class="grid tasks"></section>
+    </div>
+  </main>
+
+  <div id="taskModal" class="modal">
+    <div class="card modal-box">
+      <h2 id="modalTitle">Новая задача</h2>
+      <form id="taskForm" class="form-grid">
+        <input type="hidden" name="id">
+        <div>
+          <label for="title">Название</label>
+          <input id="title" name="title" required>
+        </div>
+        <div>
+          <label for="description">Описание</label>
+          <textarea id="description" name="description"></textarea>
+        </div>
+        <div>
+          <label for="deadlineInput">Крайний срок</label>
+          <input id="deadlineInput" name="deadline" type="datetime-local">
+        </div>
+        <div>
+          <label for="priorityInput">Приоритет</label>
+          <select id="priorityInput" name="priority">
+            <option value="low">Низкий</option>
+            <option value="medium" selected>Средний</option>
+            <option value="high">Высокий</option>
+          </select>
+        </div>
+        <div>
+          <label for="statusInput">Статус</label>
+          <select id="statusInput" name="status">
+            <option value="pending">Ожидает</option>
+            <option value="in_progress">В работе</option>
+            <option value="completed">Выполнена</option>
+          </select>
+        </div>
+        <div class="toolbar-actions">
+          <button type="submit">Сохранить</button>
+          <button type="button" id="closeModal" class="btn secondary">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script type="module" src="assets/js/pages/tasks.js"></script>
+</body>
+</html>

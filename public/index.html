@@ -1,57 +1,47 @@
 <!doctype html>
 <html lang="ru">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Главная — Портал команды</title>
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
-
-<body>
-    <div id="globalLoader" class="loader hidden">
-        <div class="spinner"></div>
+<body data-page="home">
+  <div id="globalLoader" class="loader hidden"><div class="spinner"></div></div>
+  <div id="toastWrap" class="toast-wrap"></div>
+  <header class="card header container">
+    <div class="brand"><span class="brand-mark">ПК</span><span>Портал команды</span></div>
+    <nav class="nav">
+      <a data-page="home" href="index.html">Главная</a>
+      <a data-page="tasks" href="tasks.html">Задачи</a>
+      <a data-page="news" href="news.html">Новости</a>
+      <a data-page="admin" id="adminLink" href="admin.html">Админ</a>
+    </nav>
+    <div class="user-bar">
+      <span><strong id="currentUserName">…</strong></span>
+      <span id="currentUserRole">…</span>
+      <button id="logoutBtn" type="button" class="btn secondary btn-sm">Выйти</button>
     </div>
-    <div id="toastWrap" class="toast-wrap"></div>
-    <header class="card header container"><b>⚡ Corp Portal</b>
-        <nav class="nav"><a class="active" href="index.html">Dashboard</a><a href="tasks.html">Tasks</a><a
-                href="news.html">News</a><a id="adminLink" href="admin.html">Admin</a></nav>
-        <div><span id="currentUserName"></span> · <span id="currentUserRole"></span> <button id="logoutBtn"
-                class="btn secondary">Выйти</button></div>
-    </header>
-    <main class="page">
-        <div class="container grid">
-            <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-                <article class="card" style="padding:1rem">
-                    <p class="muted">Всего задач</p>
-                    <h2 id="t">0</h2>
-                </article>
-                <article class="card" style="padding:1rem">
-                    <p class="muted">Выполнено</p>
-                    <h2 id="c">0</h2>
-                </article>
-                <article class="card" style="padding:1rem">
-                    <p class="muted">В работе</p>
-                    <h2 id="p">0</h2>
-                </article>
-            </section>
-            <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
-                <article class="card" style="padding:1rem">
-                    <h3>Последние новости</h3>
-                    <ul id="n"></ul>
-                </article>
-                <article class="card" style="padding:1rem">
-                    <h3>Мои задачи</h3>
-                    <ul id="m"></ul>
-                </article>
-            </section>
-        </div>
-    </main>
-    <script type="module">
-        import { initLayout } from './assets/js/app.js'; import { api } from './assets/js/api.js'; import { loading } from './assets/js/components/ui.js';
-        const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-        (async () => { loading(true); await initLayout(); const d = await api.dashboard(); t.textContent = d.stats.total; c.textContent = d.stats.completed; p.textContent = d.stats.in_progress; n.innerHTML = d.latest_news.map(x => `<li>${esc(x.title)} <span class='muted'>${esc(x.author_name || '')}</span></li>`).join('') || '<li>Нет новостей</li>'; m.innerHTML = d.my_tasks.map(x => `<li>${esc(x.title)} <span class='badge ${x.status}'>${x.status}</span></li>`).join('') || '<li>Нет задач</li>'; loading(false); })();
-    </script>
+  </header>
+  <main class="page">
+    <div class="container">
+      <section class="grid stats">
+        <article class="card stat-card"><h3>Всего задач</h3><p id="statTotal">0</p></article>
+        <article class="card stat-card"><h3>Выполнено</h3><p id="statCompleted">0</p></article>
+        <article class="card stat-card"><h3>В работе</h3><p id="statProgress">0</p></article>
+      </section>
+      <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+        <article class="card section-card">
+          <h3>Последние новости</h3>
+          <ul id="latestNews"></ul>
+        </article>
+        <article class="card section-card">
+          <h3>Мои задачи</h3>
+          <ul id="myTasks"></ul>
+        </article>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="assets/js/pages/dashboard.js"></script>
 </body>
-
 </html>
