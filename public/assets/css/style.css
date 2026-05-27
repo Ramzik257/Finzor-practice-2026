@@ -157,6 +157,68 @@ a {
   font-weight: 700;
 }
 
+.stat-card.compact p {
+  font-size: 1.5rem;
+}
+
+.secondary-stats {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-bottom: 1rem;
+}
+
+.welcome-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1rem;
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(168, 85, 247, 0.1)),
+    var(--card);
+}
+
+.welcome-hero h1 {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 1.75rem;
+}
+
+.welcome-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.welcome-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.welcome-actions .btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.feed-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.feed-list li {
+  margin-bottom: 0.65rem;
+  line-height: 1.45;
+}
+
+.feed-list li strong {
+  font-weight: 600;
+}
+
 .section-card {
   padding: 1.25rem;
 }

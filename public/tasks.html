@@ -50,6 +50,12 @@
             </select>
           </div>
           <div>
+            <label for="assignee">Ответственный</label>
+            <select id="assignee" name="assignee_id">
+              <option value="">Все</option>
+            </select>
+          </div>
+          <div>
             <label for="deadline">Срок</label>
             <input id="deadline" name="deadline" type="date">
           </div>
@@ -75,6 +81,12 @@
         <div>
           <label for="description">Описание</label>
           <textarea id="description" name="description"></textarea>
+        </div>
+        <div>
+          <label for="assigneeInput">Ответственный</label>
+          <select id="assigneeInput" name="assignee_id">
+            <option value="">Не назначен</option>
+          </select>
         </div>
         <div>
           <label for="deadlineInput">Крайний срок</label>

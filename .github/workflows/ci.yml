@@ -34,6 +34,7 @@ jobs:
           test -f backend/config/database.php
           test -f backend/core/bootstrap.php
           test -f backend/api/auth.php
+          test -f backend/api/members.php
           test -f public/login.html
           test -f public/tasks.html
           test -f public/news.html

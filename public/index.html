@@ -25,19 +25,38 @@
   </header>
   <main class="page">
     <div class="container">
+      <section class="card welcome-hero">
+        <div>
+          <p class="welcome-label">Добро пожаловать</p>
+          <h1 id="welcomeName">…</h1>
+          <p class="muted">Краткий обзор задач, новостей и активности команды</p>
+        </div>
+        <div class="welcome-actions">
+          <a class="btn" href="tasks.html">Перейти к задачам</a>
+          <a class="btn secondary" href="news.html">Читать новости</a>
+        </div>
+      </section>
+
       <section class="grid stats">
         <article class="card stat-card"><h3>Всего задач</h3><p id="statTotal">0</p></article>
-        <article class="card stat-card"><h3>Выполнено</h3><p id="statCompleted">0</p></article>
         <article class="card stat-card"><h3>В работе</h3><p id="statProgress">0</p></article>
+        <article class="card stat-card"><h3>Ожидают</h3><p id="statPending">0</p></article>
+        <article class="card stat-card"><h3>Выполнено</h3><p id="statCompleted">0</p></article>
       </section>
+
+      <section class="grid stats secondary-stats">
+        <article class="card stat-card compact"><h3>Новостей</h3><p id="statNews">0</p></article>
+        <article class="card stat-card compact"><h3>Сотрудников</h3><p id="statUsers">0</p></article>
+      </section>
+
       <section class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
         <article class="card section-card">
           <h3>Последние новости</h3>
-          <ul id="latestNews"></ul>
+          <ul id="latestNews" class="feed-list"></ul>
         </article>
         <article class="card section-card">
           <h3>Мои задачи</h3>
-          <ul id="myTasks"></ul>
+          <ul id="myTasks" class="feed-list"></ul>
         </article>
       </section>
     </div>

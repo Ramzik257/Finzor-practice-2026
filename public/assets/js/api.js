@@ -34,6 +34,7 @@ export const api = {
   login: (email, password) => req('auth.php?action=login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   logout: () => req('auth.php?action=logout', { method: 'POST', body: '{}' }),
   dashboard: () => req('dashboard.php'),
+  members: () => req('members.php'),
   tasks: (q = '') => req(`tasks.php${q}`),
   createTask: (p) => req('tasks.php', { method: 'POST', body: JSON.stringify(p) }),
   updateTask: (p) => req('tasks.php', { method: 'PUT', body: JSON.stringify(p) }),

@@ -3,7 +3,7 @@ import { api } from '../api.js';
 import { loading, toast, modalOpen, modalClose } from '../components/ui.js';
 import { labelStatus, labelPriority } from '../labels.js';
 
-const state = { me: null, tasks: [], debounce: null };
+const state = { me: null, tasks: [], members: [], debounce: null };
 const list = document.getElementById('taskList');
 const filters = document.getElementById('filters');
 const form = document.getElementById('taskForm');
@@ -16,7 +16,7 @@ function formatDate(value) {
 
 function renderTasks() {
   if (!state.tasks.length) {
-    list.innerHTML = '<p class="empty-state">Задач не найдено. Создайте первую задачу.</p>';
+    list.innerHTML = '<p class="empty-state card section-card">Задач не найдено. Создайте первую задачу или сбросьте фильтры.</p>';
     return;
   }
 
@@ -30,6 +30,7 @@ function renderTasks() {
           <span class="badge ${task.status}">${labelStatus(task.status)}</span>
           <span class="badge ${task.priority}">${labelPriority(task.priority)}</span>
         </div>
+        <p class="muted">Постановщик: ${escapeHtml(task.creator_name || '—')}</p>
         <p class="muted">Ответственный: ${escapeHtml(task.assignee_name || 'не назначен')}</p>
         <p class="muted">Срок: ${formatDate(task.deadline)}</p>
         <div class="task-actions">
@@ -46,6 +47,16 @@ function renderTasks() {
   list.querySelectorAll('[data-edit]').forEach((btn) => btn.addEventListener('click', () => openEdit(Number(btn.dataset.edit)));
   list.querySelectorAll('[data-delete]').forEach((btn) => btn.addEventListener('click', () => removeTask(Number(btn.dataset.delete)));
   list.querySelectorAll('[data-status]').forEach((btn) => btn.addEventListener('click', () => nextStatus(Number(btn.dataset.status)));
+}
+
+async function loadMembers() {
+  state.members = await api.members();
+  const memberOptions = state.members
+    .map((m) => `<option value="${m.id}">${escapeHtml(m.full_name || m.email)}</option>`)
+    .join('');
+
+  document.getElementById('assignee').innerHTML = `<option value="">Все</option>${memberOptions}`;
+  document.getElementById('assigneeInput').innerHTML = `<option value="">Не назначен</option>${memberOptions}`;
 }
 
 async function loadTasks() {
@@ -67,6 +78,7 @@ function openEdit(id) {
   form.id.value = task.id;
   form.title.value = task.title;
   form.description.value = task.description || '';
+  form.assignee_id.value = task.assignee_id || '';
   form.deadline.value = task.deadline ? task.deadline.slice(0, 16) : '';
   form.priority.value = task.priority;
   form.status.value = task.status;
@@ -89,6 +101,7 @@ async function submitTask(event) {
     toast('Укажите название задачи', 'error');
     return;
   }
+  if (!payload.assignee_id) payload.assignee_id = null;
 
   try {
     if (payload.id) {
@@ -150,6 +163,7 @@ document.getElementById('resetFilters').addEventListener('click', () => {
 (async () => {
   loading(true);
   state.me = await initLayout();
+  await loadMembers();
   await loadTasks();
   loading(false);
 })();
